@@ -59,6 +59,7 @@ private:
   bool expandLoadTLSGDAddress(MachineBasicBlock &MBB,
                               MachineBasicBlock::iterator MBBI,
                               MachineBasicBlock::iterator &NextMBBI);
+  bool expandVSetVL(MachineBasicBlock &MBB, MachineBasicBlock::iterator MBBI);
 };
 
 char RISCVExpandPseudo::ID = 0;
@@ -99,6 +100,8 @@ bool RISCVExpandPseudo::expandMI(MachineBasicBlock &MBB,
     return expandLoadTLSIEAddress(MBB, MBBI, NextMBBI);
   case RISCV::PseudoLA_TLS_GD:
     return expandLoadTLSGDAddress(MBB, MBBI, NextMBBI);
+  case RISCV::PseudoVSETVLI:
+    return expandVSetVL(MBB, MBBI);
   }
 
   return false;
@@ -186,6 +189,28 @@ bool RISCVExpandPseudo::expandLoadTLSGDAddress(
     MachineBasicBlock::iterator &NextMBBI) {
   return expandAuipcInstPair(MBB, MBBI, NextMBBI, RISCVII::MO_TLS_GD_HI,
                              RISCV::ADDI);
+}
+
+bool RISCVExpandPseudo::expandVSetVL(MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator MBBI) {
+  MachineInstr &MI = *MBBI;
+  assert(MI.getNumOperands() == 5 && "Unexpected instruction format");
+
+  MachineFunction &MF = *MBB.getParent();
+  DebugLoc DL = MI.getDebugLoc();
+  const TargetInstrInfo &TII = *MF.getSubtarget().getInstrInfo();
+
+  assert(MI.getOpcode() == RISCV::PseudoVSETVLI &&
+	 "Unexpected pseudo instruction");
+  const MCInstrDesc &MCInstr = TII.get(RISCV::VSETVLI);
+  assert(MCInstr.getNumOperands() == 3 && "Unexpected instruction format");
+
+  BuildMI(MBB, MI, DL, MCInstr, /* DstReg */ MI.getOperand(0).getReg())
+      .add(MI.getOperand(1))  // VL
+      .add(MI.getOperand(2)); // VType
+
+  MI.eraseFromParent(); // The pseudo instruction is gone now.
+  return true;
 }
 
 } // end of anonymous namespace

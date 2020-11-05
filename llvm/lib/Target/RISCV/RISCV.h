@@ -34,6 +34,7 @@ void LowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
                                     const AsmPrinter &AP);
 bool LowerRISCVMachineOperandToMCOperand(const MachineOperand &MO,
                                          MCOperand &MCOp, const AsmPrinter &AP);
+bool LowerRISCVVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI);
 
 FunctionPass *createRISCVISelDag(RISCVTargetMachine &TM);
 

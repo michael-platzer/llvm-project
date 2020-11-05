@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "RISCV.h"
+#include "RISCVSubtarget.h"
 #include "MCTargetDesc/RISCVMCExpr.h"
 #include "llvm/CodeGen/AsmPrinter.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
@@ -127,6 +128,9 @@ bool llvm::LowerRISCVMachineOperandToMCOperand(const MachineOperand &MO,
 
 void llvm::LowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
                                           const AsmPrinter &AP) {
+  if (LowerRISCVVMachineInstrToMCInst(MI, OutMI))
+    return;
+
   OutMI.setOpcode(MI->getOpcode());
 
   for (const MachineOperand &MO : MI->operands()) {
@@ -134,4 +138,69 @@ void llvm::LowerRISCVMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
     if (LowerRISCVMachineOperandToMCOperand(MO, MCOp, AP))
       OutMI.addOperand(MCOp);
   }
+}
+
+bool llvm::LowerRISCVVMachineInstrToMCInst(const MachineInstr *MI,
+					   MCInst &OutMI) {
+  const RISCVVPseudosTable::PseudoInfo *RVV =
+      RISCVVPseudosTable::getPseudoInfo(MI->getOpcode());
+  if (!RVV)
+    return false;
+
+  OutMI.setOpcode(RVV->BaseInstr);
+
+  const MachineBasicBlock *MBB = MI->getParent();
+  assert(MBB && "MI expected to be in a basic block");
+  const MachineFunction *MF = MBB->getParent();
+  assert(MF && "MBB expected to be in a machine function");
+
+  const TargetRegisterInfo *TRI =
+      MF->getSubtarget<RISCVSubtarget>().getRegisterInfo();
+  assert(TRI && "TargetRegisterInfo expected");
+
+  for (const MachineOperand &MO : MI->operands()) {
+    int OpNo = (int)MI->getOperandNo(&MO);
+    assert(OpNo >= 0 && "Operand number doesn't fit in an 'int' type");
+
+    // Skip VL, SEW and MergeOp operands
+    if (OpNo == RVV->getVLIndex() || OpNo == RVV->getSEWIndex() ||
+        OpNo == RVV->getMergeOpIndex())
+      continue;
+
+    MCOperand MCOp;
+    switch (MO.getType()) {
+    default:
+      report_fatal_error("unknown operand type");
+    case MachineOperand::MO_Register: {
+      // Ignore all implicit register operands.
+      if (MO.isImplicit())
+        continue;
+
+      unsigned Reg = MO.getReg();
+
+      // Nothing to do on NoRegister operands (used as vector mask operand on
+      // unmasked instructions)
+      if (Reg == RISCV::NoRegister) {
+        MCOp = MCOperand::createReg(Reg);
+        break;
+      }
+
+      const TargetRegisterClass *RC = TRI->getMinimalPhysRegClass(Reg);
+      if (RC->hasSuperClassEq(&RISCV::VRM2RegClass) ||
+          RC->hasSuperClassEq(&RISCV::VRM4RegClass) ||
+          RC->hasSuperClassEq(&RISCV::VRM8RegClass)) {
+        Reg = TRI->getSubReg(Reg, RISCV::sub_vrm2);
+        assert(Reg && "Subregister does not exist");
+      }
+
+      MCOp = MCOperand::createReg(Reg);
+      break;
+    }
+    case MachineOperand::MO_Immediate:
+      MCOp = MCOperand::createImm(MO.getImm());
+      break;
+    }
+    OutMI.addOperand(MCOp);
+  }
+  return true;
 }
