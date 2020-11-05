@@ -100,27 +100,31 @@ class VUnitStrideLoad<RISCVLSUMOP lumop, RISCVWidth width,
                       string opcodestr>
     : RVInstVLU<0b000, width.Value{3}, lumop, width.Value{2-0},
                 (outs VRegOp:$vd),
-                (ins GPR:$rs1, VMaskOp:$vm), opcodestr, "$vd, (${rs1})$vm">;
+                (ins GPR:$rs1, VMaskOp:$vm), opcodestr, "$vd, (${rs1})$vm">,
+                Sched<[WriteVUnitStrideLoad, ReadMemBase]>;
 
 // load vd, (rs1), rs2, vm
 class VStridedLoad<RISCVWidth width, string opcodestr>
     : RVInstVLS<0b000, width.Value{3}, width.Value{2-0},
                 (outs VRegOp:$vd),
                 (ins GPR:$rs1, GPR:$rs2, VMaskOp:$vm), opcodestr,
-                "$vd, (${rs1}), $rs2$vm">;
+                "$vd, (${rs1}), $rs2$vm">,
+                Sched<[WriteVStridedLoad, ReadMemBase]>;
 
 // load vd, (rs1), vs2, vm
 class VIndexedLoad<RISCVWidth width, string opcodestr>
     : RVInstVLX<0b000, width.Value{3}, width.Value{2-0},
                 (outs VRegOp:$vd),
                 (ins GPR:$rs1, VRegOp:$vs2, VMaskOp:$vm), opcodestr,
-                "$vd, (${rs1}), $vs2$vm">;
+                "$vd, (${rs1}), $vs2$vm">,
+                Sched<[WriteVIndexedLoad, ReadMemBase]>;
 
 // vl<nf>r.v vd, (rs1)
 class VWholeLoad<bits<3> nf, string opcodestr>
     : RVInstVLU<nf, 0b0, LUMOPUnitStrideWholeReg,
                 0b000, (outs VRegOp:$vd), (ins GPR:$rs1),
-                opcodestr, "$vd, (${rs1})"> {
+                opcodestr, "$vd, (${rs1})">,
+                Sched<[WriteVWholeLoad, ReadMemBase]> {
   let vm = 1;
   let Uses = [];
 }
@@ -130,21 +134,24 @@ class VUnitStrideSegmentLoad<bits<3> nf, RISCVLSUMOP lumop,
                              RISCVWidth width, string opcodestr>
     : RVInstVLU<nf, width.Value{3}, lumop, width.Value{2-0},
                 (outs VRegOp:$vd),
-                (ins GPR:$rs1, VMaskOp:$vm), opcodestr, "$vd, (${rs1})$vm">;
+                (ins GPR:$rs1, VMaskOp:$vm), opcodestr, "$vd, (${rs1})$vm">,
+                Sched<[WriteVUnitStrideSegmentLoad, ReadMemBase]>;
 
 // segment load vd, (rs1), rs2, vm
 class VStridedSegmentLoad<bits<3> nf, RISCVWidth width, string opcodestr>
     : RVInstVLS<nf, width.Value{3}, width.Value{2-0},
                 (outs VRegOp:$vd),
                 (ins GPR:$rs1, GPR:$rs2, VMaskOp:$vm), opcodestr,
-                "$vd, (${rs1}), $rs2$vm">;
+                "$vd, (${rs1}), $rs2$vm">,
+                Sched<[WriteVStridedSegmentLoad, ReadMemBase]>;
 
 // segment load vd, (rs1), vs2, vm
 class VIndexedSegmentLoad<bits<3> nf, RISCVWidth width, string opcodestr>
     : RVInstVLX<nf, width.Value{3}, width.Value{2-0},
                 (outs VRegOp:$vd),
                 (ins GPR:$rs1, VRegOp:$vs2, VMaskOp:$vm), opcodestr,
-                "$vd, (${rs1}), $vs2$vm">;
+                "$vd, (${rs1}), $vs2$vm">,
+                Sched<[WriteVIndexedSegmentLoad, ReadMemBase]>;
 } // hasSideEffects = 0, mayLoad = 1, mayStore = 0
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 1 in {
@@ -153,25 +160,29 @@ class VUnitStrideStore<RISCVLSUMOP sumop, RISCVWidth width,
                          string opcodestr>
     : RVInstVSU<0b000, width.Value{3}, sumop, width.Value{2-0},
                 (outs), (ins VRegOp:$vs3, GPR:$rs1, VMaskOp:$vm), opcodestr,
-                "$vs3, (${rs1})$vm">;
+                "$vs3, (${rs1})$vm">,
+                Sched<[WriteVUnitStrideStore, ReadVUnitStrideStore, ReadMemBase]>;
 
 // store vd, vs3, (rs1), rs2, vm
 class VStridedStore<RISCVWidth width, string opcodestr>
     : RVInstVSS<0b000, width.Value{3}, width.Value{2-0}, (outs),
                 (ins VRegOp:$vs3, GPR:$rs1, GPR:$rs2, VMaskOp:$vm),
-                opcodestr, "$vs3, (${rs1}), $rs2$vm">;
+                opcodestr, "$vs3, (${rs1}), $rs2$vm">,
+                Sched<[WriteVStridedStore, ReadVStridedStore, ReadMemBase]>;
 
 // store vd, vs3, (rs1), vs2, vm
 class VIndexedStore<RISCVMOP mop, RISCVWidth width, string opcodestr>
     : RVInstVSX<0b000, width.Value{3}, mop, width.Value{2-0}, (outs),
                 (ins VRegOp:$vs3, GPR:$rs1, VRegOp:$vs2, VMaskOp:$vm),
-                opcodestr, "$vs3, (${rs1}), $vs2$vm">;
+                opcodestr, "$vs3, (${rs1}), $vs2$vm">,
+                Sched<[WriteVIndexedStore, ReadVIndexedStore, ReadMemBase]>;
 
 // vs<nf>r.v vd, (rs1)
 class VWholeStore<bits<3> nf, string opcodestr>
     : RVInstVSU<nf, 0b0, SUMOPUnitStrideWholeReg,
                 0b000, (outs), (ins VRegOp:$vs3, GPR:$rs1),
-                opcodestr, "$vs3, (${rs1})"> {
+                opcodestr, "$vs3, (${rs1})">,
+                Sched<[WriteVWholeStore, ReadVWholeStore, ReadMemBase]> {
   let vm = 1;
   let Uses = [];
 }
@@ -180,19 +191,22 @@ class VWholeStore<bits<3> nf, string opcodestr>
 class VUnitStrideSegmentStore<bits<3> nf, RISCVWidth width, string opcodestr>
     : RVInstVSU<nf, width.Value{3}, SUMOPUnitStride, width.Value{2-0},
                 (outs), (ins VRegOp:$vs3, GPR:$rs1, VMaskOp:$vm), opcodestr,
-                "$vs3, (${rs1})$vm">;
+                "$vs3, (${rs1})$vm">,
+                Sched<[WriteVUnitStrideSegmentStore, ReadVUnitStrideSegmentStore, ReadMemBase]>;
 
 // segment store vd, vs3, (rs1), rs2, vm
 class VStridedSegmentStore<bits<3> nf, RISCVWidth width, string opcodestr>
     : RVInstVSS<nf, width.Value{3}, width.Value{2-0}, (outs),
                 (ins VRegOp:$vs3, GPR:$rs1, GPR:$rs2, VMaskOp:$vm),
-                opcodestr, "$vs3, (${rs1}), $rs2$vm">;
+                opcodestr, "$vs3, (${rs1}), $rs2$vm">,
+                Sched<[WriteVStridedSegmentStore, ReadVStridedSegmentStore, ReadMemBase]>;
 
 // segment store vd, vs3, (rs1), vs2, vm
 class VIndexedSegmentStore<bits<3> nf, RISCVWidth width, string opcodestr>
     : RVInstVSX<nf, width.Value{3}, MOPSTIndexedOrder, width.Value{2-0}, (outs),
                 (ins VRegOp:$vs3, GPR:$rs1, VRegOp:$vs2, VMaskOp:$vm),
-                opcodestr, "$vs3, (${rs1}), $vs2$vm">;
+                opcodestr, "$vs3, (${rs1}), $vs2$vm">,
+                Sched<[WriteVIndexedSegmentStore, ReadVIndexedSegmentStore, ReadMemBase]>;
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 1
 
 let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
@@ -200,13 +214,15 @@ let hasSideEffects = 0, mayLoad = 0, mayStore = 0 in {
 class VALUVV<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVV<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, VRegOp:$vs1, VMaskOp:$vm),
-                opcodestr, "$vd, $vs2, $vs1$vm">;
+                opcodestr, "$vd, $vs2, $vs1$vm">,
+                Sched<[WriteVALUVV, ReadVALUVV, ReadVALUVV]>;
 
 // op vd, vs2, vs1, v0 (without mask, use v0 as carry input)
 class VALUmVV<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVV<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, VRegOp:$vs1, VMV0:$v0),
-                opcodestr, "$vd, $vs2, $vs1, v0"> {
+                opcodestr, "$vd, $vs2, $vs1, v0">,
+                Sched<[WriteVALUVV, ReadVALUVV, ReadVALUVV]> {
   let vm = 0;
 }
 
@@ -214,13 +230,15 @@ class VALUmVV<bits<6> funct6, RISCVVFormat opv, string opcodestr>
 class VALUrVV<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVV<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs1, VRegOp:$vs2, VMaskOp:$vm),
-                opcodestr, "$vd, $vs1, $vs2$vm">;
+                opcodestr, "$vd, $vs1, $vs2$vm">,
+                Sched<[WriteVALUVV, ReadVALUVV, ReadVALUVV]>;
 
 // op vd, vs1, vs2
 class VALUVVNoVm<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVV<funct6, opv, (outs VRegOp:$vd),
                (ins VRegOp:$vs2, VRegOp:$vs1),
-               opcodestr, "$vd, $vs2, $vs1"> {
+               opcodestr, "$vd, $vs2, $vs1">,
+               Sched<[WriteVALUVV, ReadVALUVV, ReadVALUVV]> {
   let vm = 1;
 }
 
@@ -228,13 +246,15 @@ class VALUVVNoVm<bits<6> funct6, RISCVVFormat opv, string opcodestr>
 class VALUVX<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, GPR:$rs1, VMaskOp:$vm),
-                opcodestr, "$vd, $vs2, $rs1$vm">;
+                opcodestr, "$vd, $vs2, $rs1$vm">,
+                Sched<[WriteVALUVX, ReadVALUVX, ReadVALUVX]>;
 
 // op vd, vs2, rs1, v0 (without mask, use v0 as carry input)
 class VALUmVX<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, GPR:$rs1, VMV0:$v0),
-                opcodestr, "$vd, $vs2, $rs1, v0"> {
+                opcodestr, "$vd, $vs2, $rs1, v0">,
+                Sched<[WriteVALUVX, ReadVALUVX, ReadVALUVX]> {
   let vm = 0;
 }
 
@@ -242,13 +262,15 @@ class VALUmVX<bits<6> funct6, RISCVVFormat opv, string opcodestr>
 class VALUrVX<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                 (ins GPR:$rs1, VRegOp:$vs2, VMaskOp:$vm),
-                opcodestr, "$vd, $rs1, $vs2$vm">;
+                opcodestr, "$vd, $rs1, $vs2$vm">,
+                Sched<[WriteVALUVX, ReadVALUVX, ReadVALUVX]>;
 
 // op vd, vs1, vs2
 class VALUVXNoVm<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                (ins VRegOp:$vs2, GPR:$rs1),
-               opcodestr, "$vd, $vs2, $rs1"> {
+               opcodestr, "$vd, $vs2, $rs1">,
+               Sched<[WriteVALUVX, ReadVALUVX, ReadVALUVX]> {
   let vm = 1;
 }
 
@@ -256,13 +278,15 @@ class VALUVXNoVm<bits<6> funct6, RISCVVFormat opv, string opcodestr>
 class VALUVI<bits<6> funct6, string opcodestr, Operand optype = simm5>
     : RVInstIVI<funct6, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, optype:$imm, VMaskOp:$vm),
-                opcodestr, "$vd, $vs2, $imm$vm">;
+                opcodestr, "$vd, $vs2, $imm$vm">,
+                Sched<[WriteVALUVI, ReadVALUVI, ReadVALUVI]>;
 
 // op vd, vs2, imm, v0 (without mask, use v0 as carry input)
 class VALUmVI<bits<6> funct6, string opcodestr, Operand optype = simm5>
     : RVInstIVI<funct6, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, optype:$imm, VMV0:$v0),
-                opcodestr, "$vd, $vs2, $imm, v0"> {
+                opcodestr, "$vd, $vs2, $imm, v0">,
+                Sched<[WriteVALUVI, ReadVALUVI, ReadVALUVI]> {
   let vm = 0;
 }
 
@@ -270,7 +294,8 @@ class VALUmVI<bits<6> funct6, string opcodestr, Operand optype = simm5>
 class VALUVINoVm<bits<6> funct6, string opcodestr, Operand optype = simm5>
     : RVInstIVI<funct6, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, optype:$imm),
-                opcodestr, "$vd, $vs2, $imm"> {
+                opcodestr, "$vd, $vs2, $imm">,
+                Sched<[WriteVALUVI, ReadVALUVI, ReadVALUVI]> {
   let vm = 1;
 }
 
@@ -278,19 +303,22 @@ class VALUVINoVm<bits<6> funct6, string opcodestr, Operand optype = simm5>
 class VALUVF<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                 (ins VRegOp:$vs2, FPR32:$rs1, VMaskOp:$vm),
-                opcodestr, "$vd, $vs2, $rs1$vm">;
+                opcodestr, "$vd, $vs2, $rs1$vm">,
+                Sched<[WriteVALUVF, ReadVALUVF, ReadVALUVF]>;
 
 // op vd, rs1, vs2, vm (Float) (with mask, reverse the order of rs1 and vs2)
 class VALUrVF<bits<6> funct6, RISCVVFormat opv, string opcodestr>
     : RVInstVX<funct6, opv, (outs VRegOp:$vd),
                 (ins FPR32:$rs1, VRegOp:$vs2, VMaskOp:$vm),
-                opcodestr, "$vd, $rs1, $vs2$vm">;
+                opcodestr, "$vd, $rs1, $vs2$vm">,
+                Sched<[WriteVALUVF, ReadVALUVF, ReadVALUVF]>;
 
 // op vd, vs2, vm (use vs1 as instruction encoding)
 class VALUVs2<bits<6> funct6, bits<5> vs1, RISCVVFormat opv, string opcodestr>
     : RVInstV<funct6, vs1, opv, (outs VRegOp:$vd),
                (ins VRegOp:$vs2, VMaskOp:$vm),
-               opcodestr, "$vd, $vs2$vm">;
+               opcodestr, "$vd, $vs2$vm">,
+               Sched<[WriteVALUVs2, ReadVALUVs2, ReadVALUVs2]>;
 } // hasSideEffects = 0, mayLoad = 0, mayStore = 0
 
 let hasSideEffects = 0, mayLoad = 1, mayStore = 1 in {

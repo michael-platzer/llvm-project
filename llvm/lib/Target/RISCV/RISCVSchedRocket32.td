@@ -163,6 +163,26 @@ def : WriteRes<WriteFCvtF64ToI64, []>;
 def : WriteRes<WriteFCvtF32ToI64, []>;
 def : WriteRes<WriteFMovI64ToF64, []>;
 def : WriteRes<WriteFMovF64ToI64, []>;
+
+def : WriteRes<WriteVUnitStrideLoad,         []>;
+def : WriteRes<WriteVStridedLoad,            []>;
+def : WriteRes<WriteVIndexedLoad,            []>;
+def : WriteRes<WriteVWholeLoad,              []>;
+def : WriteRes<WriteVUnitStrideSegmentLoad,  []>;
+def : WriteRes<WriteVStridedSegmentLoad,     []>;
+def : WriteRes<WriteVIndexedSegmentLoad,     []>;
+def : WriteRes<WriteVUnitStrideStore,        []>;
+def : WriteRes<WriteVStridedStore,           []>;
+def : WriteRes<WriteVIndexedStore,           []>;
+def : WriteRes<WriteVWholeStore,             []>;
+def : WriteRes<WriteVUnitStrideSegmentStore, []>;
+def : WriteRes<WriteVStridedSegmentStore,    []>;
+def : WriteRes<WriteVIndexedSegmentStore,    []>;
+def : WriteRes<WriteVALUVV,                  []>;
+def : WriteRes<WriteVALUVX,                  []>;
+def : WriteRes<WriteVALUVI,                  []>;
+def : WriteRes<WriteVALUVF,                  []>;
+def : WriteRes<WriteVALUVs2,                 []>;
 }
 
 //===----------------------------------------------------------------------===//
@@ -224,4 +244,26 @@ def : ReadAdvance<ReadFMovF64ToI64, 0>;
 def : ReadAdvance<ReadFMovI64ToF64, 0>;
 def : ReadAdvance<ReadFClass32, 0>;
 def : ReadAdvance<ReadFClass64, 0>;
+
+def : ReadAdvance<ReadVUnitStrideLoad, 0>;
+def : ReadAdvance<ReadVStridedLoad, 0>;
+def : ReadAdvance<ReadVIndexedLoad, 0>;
+def : ReadAdvance<ReadVWholeLoad, 0>;
+def : ReadAdvance<ReadVUnitStrideSegmentLoad, 0>;
+def : ReadAdvance<ReadVStridedSegmentLoad, 0>;
+def : ReadAdvance<ReadVIndexedSegmentLoad, 0>;
+def : ReadAdvance<ReadVUnitStrideStore, 0>;
+def : ReadAdvance<ReadVStridedStore, 0>;
+def : ReadAdvance<ReadVIndexedStore, 0>;
+def : ReadAdvance<ReadVWholeStore, 0>;
+def : ReadAdvance<ReadVUnitStrideSegmentStore, 0>;
+def : ReadAdvance<ReadVStridedSegmentStore, 0>;
+def : ReadAdvance<ReadVIndexedSegmentStore, 0>;
+def : ReadAdvance<ReadVAMOWd, 0>;
+def : ReadAdvance<ReadVAMONoWd, 0>;
+def : ReadAdvance<ReadVALUVV, 0>;
+def : ReadAdvance<ReadVALUVX, 0>;
+def : ReadAdvance<ReadVALUVI, 0>;
+def : ReadAdvance<ReadVALUVF, 0>;
+def : ReadAdvance<ReadVALUVs2, 0>;
 }

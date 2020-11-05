@@ -88,6 +88,29 @@ def WriteFLD64        : SchedWrite;    // Floating point dp load
 def WriteFST32        : SchedWrite;    // Floating point sp store
 def WriteFST64        : SchedWrite;    // Floating point dp store
 
+// Vector instructions
+def WriteVUnitStrideLoad         : SchedWrite;  // unit-strided vector load
+def WriteVStridedLoad            : SchedWrite;  // strided vector load
+def WriteVIndexedLoad            : SchedWrite;  // indexed vector load
+def WriteVWholeLoad              : SchedWrite;  // whole vector load
+def WriteVUnitStrideSegmentLoad  : SchedWrite;  // unit-strided segment load
+def WriteVStridedSegmentLoad     : SchedWrite;  // strided segment load
+def WriteVIndexedSegmentLoad     : SchedWrite;  // indexed segment load
+def WriteVUnitStrideStore        : SchedWrite;  // unit-strided vector store
+def WriteVStridedStore           : SchedWrite;  // strided vector store
+def WriteVIndexedStore           : SchedWrite;  // indexed vector store
+def WriteVWholeStore             : SchedWrite;  // whole vector store
+def WriteVUnitStrideSegmentStore : SchedWrite;  // unit-strided segment store
+def WriteVStridedSegmentStore    : SchedWrite;  // strided segment store
+def WriteVIndexedSegmentStore    : SchedWrite;  // indexed segment store
+def WriteVAMOWd                  : SchedWrite;  //
+def WriteVAMONoWd                : SchedWrite;  //
+def WriteVALUVV                  : SchedWrite;  // VALU vector-vector op
+def WriteVALUVX                  : SchedWrite;  // VALU vector-integer op
+def WriteVALUVI                  : SchedWrite;  // VALU vector-immediate op
+def WriteVALUVF                  : SchedWrite;  // VALU vector-float op
+def WriteVALUVs2                 : SchedWrite;  // VALU single vector op
+
 /// Define scheduler resources associated with use operands.
 def ReadJmp         : SchedRead;
 def ReadJalr        : SchedRead;
@@ -145,3 +168,26 @@ def ReadFCvtF32ToF64     : SchedRead;
 def ReadFCvtF64ToF32     : SchedRead;
 def ReadFClass32         : SchedRead;
 def ReadFClass64         : SchedRead;
+
+// Vector instructions
+def ReadVUnitStrideLoad         : SchedRead;
+def ReadVStridedLoad            : SchedRead;
+def ReadVIndexedLoad            : SchedRead;
+def ReadVWholeLoad              : SchedRead;
+def ReadVUnitStrideSegmentLoad  : SchedRead;
+def ReadVStridedSegmentLoad     : SchedRead;
+def ReadVIndexedSegmentLoad     : SchedRead;
+def ReadVUnitStrideStore        : SchedRead;
+def ReadVStridedStore           : SchedRead;
+def ReadVIndexedStore           : SchedRead;
+def ReadVWholeStore             : SchedRead;
+def ReadVUnitStrideSegmentStore : SchedRead;
+def ReadVStridedSegmentStore    : SchedRead;
+def ReadVIndexedSegmentStore    : SchedRead;
+def ReadVAMOWd                  : SchedRead;
+def ReadVAMONoWd                : SchedRead;
+def ReadVALUVV                  : SchedRead;
+def ReadVALUVX                  : SchedRead;
+def ReadVALUVI                  : SchedRead;
+def ReadVALUVF                  : SchedRead;
+def ReadVALUVs2                 : SchedRead;
