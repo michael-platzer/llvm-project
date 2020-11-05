@@ -217,6 +217,7 @@ include "RISCVInstrInfo.td"
 include "RISCVRegisterBanks.td"
 include "RISCVSchedRocket32.td"
 include "RISCVSchedRocket64.td"
+include "RISCVSchedVectorProc.td"
 
 //===----------------------------------------------------------------------===//
 // RISC-V processors supported.
@@ -240,6 +241,10 @@ def : ProcessorModel<"sifive-u54", Rocket64Model, [Feature64Bit,
                                                    FeatureStdExtF,
                                                    FeatureStdExtD,
                                                    FeatureStdExtC]>;
+
+def: ProcessorModel<"vectorproc-rv32", VectorProcModel, [FeatureStdExtM,
+                                                         FeatureStdExtC,
+                                                         FeatureStdExtV]>;
 
 //===----------------------------------------------------------------------===//
 // Define the RISC-V target.
